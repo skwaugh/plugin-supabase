@@ -1,4 +1,4 @@
-export function convertCondition({field, operator, value, isEmptyIgnored}) {
+export function convertCondition({ field, operator, value, isEmptyIgnored }) {
     if (isEmptyIgnored && !value) return []
     switch (operator) {
         case '$eq':
@@ -10,9 +10,9 @@ export function convertCondition({field, operator, value, isEmptyIgnored}) {
         case '$gt':
             return [field, 'gt', value]
         case '$lte':
-            return [field, 'lte', value] 
+            return [field, 'lte', value]
         case '$gte':
-            return [field, 'gte', value] 
+            return [field, 'gte', value]
         case '$iLike:contains': // not possible on array
             return [field, 'ilike', `%${value}%`]
         case '$notILike:contains': // not possible on array
@@ -35,19 +35,25 @@ export function convertCondition({field, operator, value, isEmptyIgnored}) {
             return [field, 'not.ov', `{${value}}`]
         case '$contains':
             return [field, 'cs', `{${value}}`]
+        case '$search':
+            return [field, 'textSearch', `{${value}}`]
+        case '$match':
+            return [field, 'match', `{${value}}`]
+        case '$filter':
+            return []
         default:
             break;
     }
 }
 
 export function generateFilter(config) {
-    if(!config) return ''
-    if(!config.link || !config.conditions || config.if === false) return ''
+    if (!config) return ''
+    if (!config.link || !config.conditions || config.if === false) return ''
     const conditions = config.conditions.map(condition => {
         return condition.link ? generateFilter(condition) : convertCondition(condition).join('.')
     }).filter(condition => condition)
-    
-    if(!conditions.length) return ''
+
+    if (!conditions.length) return ''
 
     const filter = `${config.link.slice(1)}(${conditions.join()})`
 
